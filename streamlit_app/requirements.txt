@@ -1,5 +1,4 @@
-# Streamlit UI Dependencies
-# These are additional dependencies for the Streamlit interface only
-# The core system doesn't require these
-
+# Streamlit Cloud often resolves dependencies from this app folder.
+# Include project-level dependencies first, then UI-specific pins.
+-r ../requirements.txt
 streamlit>=1.37.0
