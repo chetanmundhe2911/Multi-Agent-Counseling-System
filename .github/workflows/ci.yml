@@ -27,7 +27,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y graphviz graphviz-dev
+          sudo apt-get install -y graphviz libgraphviz-dev pkg-config
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,6 +39,9 @@ jobs:
             streamlit_app/requirements.txt
 
       - name: Install project dependencies
+        env:
+          CFLAGS: -I/usr/include/graphviz
+          LDFLAGS: -L/usr/lib/x86_64-linux-gnu/graphviz
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
