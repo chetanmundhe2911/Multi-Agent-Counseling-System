@@ -1,67 +1,119 @@
 # Multi-Agent Counseling System
 
-AI-powered counseling assistant that uses an orchestrator to route user queries to specialized analysis agents (psychology, career, health, family, values, etc.) with RAG-backed report retrieval.
+A production-style AI application that performs candidate counseling analysis using an orchestrated, multi-agent architecture.  
+The system combines domain-specialized agents, retrieval-augmented generation (RAG), and stateful routing to deliver contextual, explainable responses.
 
-## Quick Start
+## Why This Project
 
-1. Install dependencies:
-   - `pip install -r requirements.txt`
-2. Set API key in `.env`:
-   - `OPENAI_API_KEY=your_api_key_here`
-3. Run CLI app:
-   - `python main.py`
-4. Run Streamlit UI:
-   - `python -m streamlit run streamlit_app/main_ui.py`
+Traditional single-agent chat systems struggle to provide consistent depth across domains such as psychology, career, health, family dynamics, and value systems.  
+This project addresses that by introducing:
 
-## Project Mental Model (Recall Notes)
+- An orchestrator that routes each query to the most relevant specialist agent(s)
+- Chained multi-agent execution for complex, cross-domain questions
+- Report-grounded responses using RAG over uploaded/local documents
+- Stateful conversation memory for continuity across turns
 
-### 1) What runs first
+## Core Capabilities
 
-- Entry command loads the entry file (`main.py` for CLI, `streamlit_app/main_ui.py` for UI).
-- Environment variables are loaded from `.env`.
-- Orchestrator + knowledge base are initialized.
-- State object is created to persist conversation and agent execution context.
+- **Intelligent Routing:** Automatically selects domain-specific agents based on user intent.
+- **Multi-Agent Chaining:** Supports sequential execution of multiple agents in one request.
+- **RAG-Backed Context:** Retrieves relevant chunks from indexed reports for grounded output.
+- **Dual Interface:** CLI (`main.py`) and Streamlit UI (`streamlit_app/main_ui.py`).
+- **Operational Visibility:** Token/cost tracking, executed-agent trace, and debug state panels.
+- **Flexible Data Sources:** Local report directory or MongoDB-backed report ingestion.
 
-### 2) UI flow (launch + first question)
+## High-Level Architecture
 
-1. Launch Streamlit (`streamlit_app/main_ui.py`).
-2. Click **Initialize System**.
-3. `initialize_system()` creates orchestrator and loads KB from local reports or MongoDB.
-4. You type first message in chat input.
-5. `process_user_input()` appends your message to `state["messages"]`.
-6. Orchestrator graph runs and routes to one or more agents.
-7. Agent responses are appended and shown in chat with agent labels.
-8. UI reruns and preserves history via `st.session_state`.
+1. User submits a query from CLI or Streamlit UI.
+2. Orchestrator analyzes intent and determines the execution plan.
+3. Selected specialist agent(s) retrieve relevant context from RAG.
+4. Agents generate structured analysis using domain prompts.
+5. Responses are merged and returned with execution trace.
+6. Session state is updated for follow-up continuity.
 
-### 3) What "state" means
+## Tech Stack
 
-State is the shared memory for one session. It helps maintain context across turns and coordinate multi-agent execution.
+- **Language:** Python
+- **LLM Orchestration:** LangGraph / LangChain patterns
+- **Model Provider:** OpenAI API
+- **UI:** Streamlit
+- **Retrieval:** Local vector index + cached RAG artifacts
+- **Data Inputs:** PDF reports (local/MongoDB)
 
-- `messages`: full conversation history used for contextual responses.
-- `current_agent`: active/selected agent.
-- `agent_chain`: ordered list of agents that ran.
-- `next_agents`: queue for chained execution.
-- `should_continue`: whether graph should keep chaining.
-- `knowledge_base`: full KB object + retrieval context.
-- `knowledge_base_summary`: compact KB text summary.
-- `agent_data`: structured per-agent outputs for debugging and traceability.
-- `candidate_id`: session identity for consistent tracking.
+## Repository Structure
 
-### 4) Why append user messages to state
+```text
+.
+├── app/
+│   ├── agents/              # Specialized domain agents + orchestrator
+│   ├── prompts/             # System/router prompts per domain
+│   ├── knowledge/           # Knowledge loading, RAG, MongoDB integration
+│   ├── models/              # Data models and report schemas
+│   └── state/               # Shared AgentState contract
+├── streamlit_app/
+│   └── main_ui.py           # Web UI for interactive testing/demo
+├── main.py                  # CLI entrypoint
+└── requirements.txt
+```
 
-Appending user input to `state["messages"]` ensures each new step sees prior context, so routing, retrieval, and responses stay coherent across the full conversation (not just the latest message).
+## Getting Started
 
-## Common Commands
+### 1) Prerequisites
 
-- Check current branch:
-  - `git branch`
-- Create local branch from remote:
-  - `git checkout -b PreMarriageCounselingAgent origin/PreMarriageCounselingAgent`
-- Run Streamlit:
-  - `python -m streamlit run streamlit_app/main_ui.py`
+- Python 3.10+
+- OpenAI API key
 
-## Notes
+### 2) Install dependencies
 
-- Reports are loaded from `Report/` (or MongoDB if configured in UI).
-- RAG cache is stored in `.rag_cache` for faster reloads.
-- Streamlit app is a UI layer; core logic lives in `app/`.
+```bash
+pip install -r requirements.txt
+```
+
+### 3) Configure environment
+
+Create `.env`:
+
+```env
+OPENAI_API_KEY=your_api_key_here
+```
+
+### 4) Run the application
+
+CLI mode:
+
+```bash
+python main.py
+```
+
+Streamlit UI:
+
+```bash
+python -m streamlit run streamlit_app/main_ui.py
+```
+
+## How a Request Is Processed
+
+1. Query is appended to session `state["messages"]` for conversational memory.
+2. Orchestrator graph invokes routing logic.
+3. Relevant agent(s) run with domain prompts and retrieved report chunks.
+4. Outputs are added to `state["agent_data"]` and response messages.
+5. UI/CLI displays final response with agent execution context.
+
+## Resume-Ready Highlights
+
+- Designed and implemented a **modular multi-agent architecture** for counseling analysis.
+- Built **RAG-enabled retrieval pipeline** to ground LLM outputs in candidate reports.
+- Added **orchestrator-based intelligent routing** with support for multi-agent chaining.
+- Developed both **CLI and Streamlit interfaces** for debugging, demos, and usability.
+- Implemented **stateful session management** and **token/cost observability** for operational control.
+
+## Future Enhancements
+
+- Agent-level confidence scoring and response quality evaluation
+- Persistent conversation/session storage with analytics dashboard
+- Automated report ingestion pipeline and background indexing workers
+- Role-based access and deployment-ready API layer
+
+## License
+
+This project is available for educational and portfolio demonstration purposes.
